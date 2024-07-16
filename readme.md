@@ -4,6 +4,7 @@ This repository contains a FastAPI application for predicting credit default pro
 
 ## Directory Structure
 
+```
 ├── a_preprocessing_featurepipeline.py
 ├── b_model_gen.py
 ├── c_model_prediction.py
@@ -15,7 +16,7 @@ This repository contains a FastAPI application for predicting credit default pro
 │ ├── cs-training.csv
 │ └── cs-test.csv
 └── README.md
-
+```
 
 
 ## Setup
@@ -82,10 +83,12 @@ This repository contains a FastAPI application for predicting credit default pro
 
 ## .gitignore
 
-'''
-models/*
+```
+/models/*
 !/models
-'''
+.ipynb_checkpoints/
+__pycache__/
+```
 
 
 
