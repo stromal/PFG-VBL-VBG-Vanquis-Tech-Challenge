@@ -1,4 +1,4 @@
-# Credit Scoring Model API
+# 🧮 Credit Scoring Model API
 
 This repository contains a FastAPI application for predicting credit default probabilities using a pre-trained Random Forest model.
 
@@ -93,7 +93,7 @@ __pycache__/
 
 
 
-# Original Task
+# 🧱 Original Task
 
 '''
 ["metadata":{ 
@@ -251,4 +251,682 @@ Some design considerations to keep on top of your mind for the next stage of tec
 * How would you build monitoring around this? 
 * Comment on this modelling approach taken by the data scientists. 
 * What would you improve?
+
+
+
+---
+# 🔬 Project Review
+---
+
+
+---
+# 🍏 (1/8) cs-training.csv
+---
+
+- **Description**: This file contains the training data used for building the credit scoring model. It includes various financial and demographic attributes of the borrowers along with the target variable indicating if the borrower experienced financial distress.
+- **Columns**:
+  - **SeriousDlqin2yrs**: Binary target variable indicating if the borrower experienced 90 days past due delinquency or worse (1: Yes, 0: No).
+  - **RevolvingUtilizationOfUnsecuredLines**: The ratio of total balance on credit cards and personal lines of credit to the sum of credit limits.
+  - **age**: The age of the borrower in years.
+  - **NumberOfTime30-59DaysPastDueNotWorse**: The number of times the borrower has been 30-59 days past due but no worse in the last 2 years.
+  - **DebtRatio**: The ratio of monthly debt payments, alimony, living costs to monthly gross income.
+  - **MonthlyIncome**: The monthly income of the borrower.
+  - **NumberOfOpenCreditLinesAndLoans**: The number of open loans (e.g., car loan or mortgage) and lines of credit (e.g., credit cards).
+  - **NumberOfTimes90DaysLate**: The number of times the borrower has been 90 days or more past due.
+  - **NumberRealEstateLoansOrLines**: The number of mortgage and real estate loans including home equity lines of credit.
+  - **NumberOfTime60-89DaysPastDueNotWorse**: The number of times the borrower has been 60-89 days past due but no worse in the last 2 years.
+  - **NumberOfDependents**: The number of dependents in the family excluding the borrower (e.g., spouse, children).
+
+---
+# 🍎 (2/8) cs-test.csv
+---
+
+- **Description**: This file contains the test data used for evaluating the credit scoring model. It includes similar attributes as the training data but without the target variable, which the model needs to predict.
+- **Columns**:
+  - **SeriousDlqin2yrs**: This column is empty as it is supposed to be predicted by the model.
+  - **RevolvingUtilizationOfUnsecuredLines**: The ratio of total balance on credit cards and personal lines of credit to the sum of credit limits.
+  - **age**: The age of the borrower in years.
+  - **NumberOfTime30-59DaysPastDueNotWorse**: The number of times the borrower has been 30-59 days past due but no worse in the last 2 years.
+  - **DebtRatio**: The ratio of monthly debt payments, alimony, living costs to monthly gross income.
+  - **MonthlyIncome**: The monthly income of the borrower.
+  - **NumberOfOpenCreditLinesAndLoans**: The number of open loans (e.g., car loan or mortgage) and lines of credit (e.g., credit cards).
+  - **NumberOfTimes90DaysLate**: The number of times the borrower has been 90 days or more past due.
+  - **NumberRealEstateLoansOrLines**: The number of mortgage and real estate loans including home equity lines of credit.
+  - **NumberOfTime60-89DaysPastDueNotWorse**: The number of times the borrower has been 60-89 days past due but no worse in the last 2 years.
+  - **NumberOfDependents**: The number of dependents in the family excluding the borrower (e.g., spouse, children).
+
+
+
+
+---
+# 🎲 (3/8) Model (sklearn.ensemble.**RandomForestClassifier**)
+---
+
+## Why RandomForestClassifier was Chosen
+
+**Advantages:**
+1. **Robustness**: Random forests are robust against overfitting, especially when dealing with large datasets with many features.
+2. **Versatility**: They can handle both classification and regression tasks.
+3. **Feature Importance**: Random forests provide estimates of feature importance, helping to understand the impact of different variables.
+4. **Handling Missing Values**: They can handle missing data effectively by using median values and proximity in trees.
+5. **Ensemble Learning**: By combining the predictions of multiple trees, random forests improve predictive accuracy.
+
+**Disadvantages:**
+1. **Complexity**: They can be computationally intensive and require more memory compared to simpler models.
+2. **Interpretability**: While more interpretable than some black-box models, understanding the specific impact of each feature can still be challenging.
+
+## Current Hyperparameters
+
+- `n_estimators=1000`: The number of trees in the forest. A higher number can improve performance but increases computational cost.
+- `random_state=42`: Ensures reproducibility by controlling the randomness in the model.
+- Default values are used for other parameters such as `criterion='gini'`, `max_depth=None`, `min_samples_split=2`, etc.
+
+## How the Dataset was Split
+
+The dataset was divided into training and test sets:
+- **Training Data**: Contained in `cs-training.csv` and used to train the model.
+- **Test Data**: Contained in `cs-test.csv` and used to evaluate the model's performance.
+
+## How RandomForestClassifier Builds and Works as a Model
+
+1. **Bootstrap Sampling**: RandomForestClassifier creates multiple subsets of the training data by sampling with replacement (bootstrap sampling).
+2. **Decision Trees**: For each subset, it trains a decision tree. Each tree is built using a random subset of features, which introduces diversity.
+3. **Node Splitting**: Each tree splits nodes based on the best possible criteria (e.g., Gini impurity) to reduce impurity in the resulting subsets.
+4. **Tree Aggregation**: The model aggregates the predictions of all trees. For classification tasks, it uses majority voting to determine the final class. For regression tasks, it averages the predictions.
+
+
+## Detailed Hyperparameters Description
+
+- **`n_estimators`**: The number of trees in the forest.
+- **`criterion`**: The function to measure the quality of a split (`'gini'`, `'entropy'`, or `'log_loss'`).
+- **`max_depth`**: The maximum depth of each tree.
+- **`min_samples_split`**: The minimum number of samples required to split an internal node.
+- **`min_samples_leaf`**: The minimum number of samples required to be at a leaf node.
+- **`min_weight_fraction_leaf`**: The minimum weighted fraction of the sum total of weights required to be at a leaf node.
+- **`max_features`**: The number of features to consider when looking for the best split.
+- **`max_leaf_nodes`**: Grow trees with a maximum number of leaf nodes.
+- **`min_impurity_decrease`**: A node will be split if this split induces a decrease of the impurity greater than or equal to this value.
+- **`bootstrap`**: Whether bootstrap samples are used when building trees.
+- **`oob_score`**: Whether to use out-of-bag samples to estimate the generalization accuracy.
+- **`n_jobs`**: The number of jobs to run in parallel.
+- **`random_state`**: Controls the randomness of the estimator.
+- **`verbose`**: Controls the verbosity when fitting and predicting.
+- **`warm_start`**: When set to `True`, reuse the solution of the previous call to fit and add more estimators to the ensemble.
+- **`class_weight`**: Weights associated with classes.
+- **`ccp_alpha`**: Complexity parameter used for Minimal Cost-Complexity Pruning.
+- **`max_samples`**: If bootstrap is `True`, the number of samples to draw from X to train each base estimator.
+
+
+
+---
+# 🥞 (4/8) Preprocessing Feature Pipeline (a_preprocessing_featurepipeline.py)
+---
+
+## Importing Libraries
+
+### Explanation
+I started by importing the necessary libraries:
+
+- **pandas**: Essential for data manipulation tasks.
+- **numpy**: Provides support for numerical operations.
+
+### Design Decisions
+- **pandas**: Chosen for its powerful data manipulation capabilities.
+- **numpy**: Used for efficient numerical operations.
+
+```python
+import pandas as pd
+import numpy as np
+```
+
+---
+
+## Preprocessing Function Definition
+
+### Explanation
+I defined a function `preprocess_data` that takes a DataFrame as input and starts by printing the initial shape of the data.
+
+### Design Decisions
+- **Function**: Adopted a modular approach to preprocess data.
+- **Print Statement**: Included for debugging and understanding data size.
+
+```python
+def preprocess_data(data):
+    try:
+        print("Initial data shape:", data.shape)
+```
+
+---
+
+## Handling Missing Values
+
+### Explanation
+I handled missing values by filling `MonthlyIncome` and `NumberOfDependents` with their median values to maintain data integrity.
+
+### Design Decisions
+- **Median Filling**: Median is robust to outliers and provides a central value for missing data.
+
+```python
+        # Fill missing values
+        print("Filling missing values for 'MonthlyIncome' and 'NumberOfDependents'...")
+        data['MonthlyIncome'] = data['MonthlyIncome'].fillna(data['MonthlyIncome'].median())
+        data['NumberOfDependents'] = data['NumberOfDependents'].fillna(data['NumberOfDependents'].median())
+```
+
+---
+
+## Column Name Validation
+
+### Explanation
+I validated the presence of specific columns and renamed them if necessary to ensure consistency.
+
+### Design Decisions
+- **Column Renaming**: Ensured consistency in column names throughout the process.
+
+```python
+        print("Checking for column 'NumberOfTime30-59DaysPastDueNotWorse'...")
+        if 'NumberOfTime30-59DaysPastDueNotWorse' in data.columns:
+            data['NumberOfTime30_59DaysPastDueNotWorse'] = data['NumberOfTime30-59DaysPastDueNotWorse']
+        else:
+            print("Column 'NumberOfTime30-59DaysPastDueNotWorse' not found.")
+
+        print("Checking for column 'NumberOfTime60-89DaysPastDueNotWorse'...")
+        if 'NumberOfTime60-89DaysPastDueNotWorse' in data.columns:
+            data['NumberOfTime60_89DaysPastDueNotWorse'] = data['NumberOfTime60-89DaysPastDueNotWorse']
+        else:
+            print("Column 'NumberOfTime60-89DaysPastDueNotWorse' not found.")
+```
+
+---
+
+## Binning and Encoding Categorical Variables
+
+### Explanation
+I binned continuous variables into discrete intervals and converted categorical variables into dummy/indicator variables. This helped in dealing with skewed data distributions and simplified the modeling process.
+
+### Design Decisions
+- **Binning**: Helped in handling skewed data distributions and converted continuous variables into discrete intervals.
+- **Encoding**: Converted categorical variables into dummy variables for better model processing.
+
+```python
+        # Handle the duplicate edges issue in qcut
+        print("Binning 'RevolvingUtilizationOfUnsecuredLines'...")
+        data['RevolvingUtilizationOfUnsecuredLines'] = pd.qcut(data['RevolvingUtilizationOfUnsecuredLines'].values, 5, duplicates='drop').codes
+        
+        print("Binning 'age'...")
+        data['age'] = pd.qcut(data['age'].values, 5, duplicates='drop').codes
+        
+        print("Binning 'NumberOfTime30_59DaysPastDueNotWorse'...")
+        data['NumberOfTime30_59DaysPastDueNotWorse'] = pd.cut(data['NumberOfTime30_59DaysPastDueNotWorse'].values, bins=[-1, 0, 1, 2, 3, 4, 5, 6], labels=False)
+        
+        print("Binning 'DebtRatio'...")
+        data['DebtRatio'] = pd.qcut(data['DebtRatio'].values, 5, duplicates='drop').codes
+        
+        print("Binning 'MonthlyIncome'...")
+        data['MonthlyIncome'] = pd.qcut(data['MonthlyIncome'].values, 5, duplicates='drop').codes
+        
+        print("Binning 'NumberOfOpenCreditLinesAndLoans'...")
+        data['NumberOfOpenCreditLinesAndLoans'] = pd.qcut(data['NumberOfOpenCreditLinesAndLoans'].values, 5, duplicates='drop').codes
+        
+        print("Binning 'NumberOfTimes90DaysLate'...")
+        data['NumberOfTimes90DaysLate'] = pd.cut(data['NumberOfTimes90DaysLate'].values, bins=[-1, 0, 1, 2, 3, 4, 5, 6], labels=False)
+        
+        print("Binning 'NumberRealEstateLoansOrLines'...")
+        data['NumberRealEstateLoansOrLines'] = pd.cut(data['NumberRealEstateLoansOrLines'].values, bins=[-1, 0, 1, 2, 3, 4, 5, 6], labels=False)
+        
+        print("Binning 'NumberOfTime60_89DaysPastDueNotWorse'...")
+        data['NumberOfTime60_89DaysPastDueNotWorse'] = pd.cut(data['NumberOfTime60_89DaysPastDueNotWorse'].values, bins=[-1, 0, 1, 2, 3], labels=False)
+        
+        print("Binning 'NumberOfDependents'...")
+        data['NumberOfDependents'] = pd.cut(data['NumberOfDependents'].values, bins=[-1, 0, 1, 2, 3, 4], labels=False)
+
+        # Generate dummy variables
+        print("Generating dummy variables...")
+        data = pd.get_dummies(data, columns=[
+            'RevolvingUtilizationOfUnsecuredLines', 'age', 'NumberOfTime30_59DaysPastDueNotWorse', 
+            'DebtRatio', 'MonthlyIncome', 'NumberOfOpenCreditLinesAndLoans', 'NumberOfTimes90DaysLate', 
+            'NumberRealEstateLoansOrLines', 'NumberOfTime60_89DaysPastDueNotWorse', 'NumberOfDependents'
+        ])
+```
+
+---
+
+## Final Data Shape and Return
+
+### Explanation
+Finally, I printed the processed data's shape and returned the processed DataFrame.
+
+### Design Decisions
+- **Print Statement**: Helped in verifying the final shape of the processed data.
+- **Returning Data**: Ensured the processed data was available for further steps in the pipeline.
+
+```python
+        print("Final processed data shape:", data.shape)
+        return data
+    except Exception as e:
+        print(f"Error in preprocessing data: {e}")
+        return pd.DataFrame()
+```
+
+---
+
+## Example Usage for Testing
+
+### Explanation
+I included an example usage section to demonstrate how the preprocessing function could be tested with sample data.
+
+### Design Decisions
+- **Example Usage**: Helped in validating the preprocessing function independently.
+
+```python
+if __name__ == "__main__":
+    # Example usage for testing
+    print("Reading input data...")
+    input_data = pd.read_csv("data/cs-test.csv")
+    print("Starting preprocessing...")
+    preprocessed_data = preprocess_data(input_data)
+    print("Preprocessing completed.")
+    print(preprocessed_data.head())
+```
+
+
+---
+# ⛵️ (5/8) Model Generation Script (b_model_gen.py)
+---
+
+
+## Importing Libraries
+
+### Explanation
+I started by importing the necessary libraries:
+
+- **pandas**: Essential for data manipulation tasks.
+- **RandomForestClassifier** from **sklearn.ensemble**: To train the machine learning model.
+- **joblib**: For saving the trained model to a file.
+
+### Design Decisions
+- **pandas**: Chosen for its powerful data manipulation capabilities.
+- **RandomForestClassifier**: Selected for its robustness and ability to handle various data types.
+- **joblib**: Used for efficient model serialization and deserialization.
+
+```python
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+```
+
+---
+
+## Loading Training Data
+
+### Explanation
+I loaded the training data from a CSV file and printed its shape to verify successful loading.
+
+### Design Decisions
+- **CSV Loading**: Using pandas to read the training data for efficient data handling.
+- **Print Statement**: Included for debugging and confirming data shape.
+
+```python
+# Load data
+print("Loading training data...")
+train_data = pd.read_csv("data/cs-training.csv")
+print("Training data loaded. Shape:", train_data.shape)
+```
+
+---
+
+## Preprocessing Training Data
+
+### Explanation
+I imported the preprocessing function from the previous script and applied it to the training data. This step ensures that the training data is preprocessed in the same way as the test data.
+
+### Design Decisions
+- **Function Reuse**: Ensured consistency in data preprocessing by reusing the same function.
+- **Print Statement**: Helped in debugging and confirming the processed data shape.
+
+```python
+# Preprocess data
+from a_preprocessing_featurepipeline import preprocess_data
+print("Starting preprocessing of training data...")
+train_data = preprocess_data(train_data)
+print("Preprocessing completed. Processed data shape:", train_data.shape)
+```
+
+---
+
+## Ensuring Target Column Existence
+
+### Explanation
+I checked for the presence of the target column (`SeriousDlqin2yrs`) in the training data and raised an error if it was missing.
+
+### Design Decisions
+- **Validation Check**: Ensured that the target column is present before proceeding with model training.
+
+```python
+# Ensure the target column is correctly named and exists
+if 'SeriousDlqin2yrs' not in train_data.columns:
+    raise KeyError("The target column 'SeriousDlqin2yrs' is missing in the training data.")
+```
+
+---
+
+## Separating Features and Target
+
+### Explanation
+I separated the features (independent variables) and the target (dependent variable) for training the model.
+
+### Design Decisions
+- **Feature-Target Separation**: Essential step for supervised learning.
+
+```python
+# Separate features and target
+print("Separating features and target...")
+X_train = train_data.drop(columns=["SeriousDlqin2yrs"])
+y_train = train_data["SeriousDlqin2yrs"]
+print("Features shape:", X_train.shape, "Target shape:", y_train.shape)
+```
+
+---
+
+## Training the Random Forest Model
+
+### Explanation
+I trained a Random Forest model using the preprocessed training data. The model was configured with 1000 estimators and a fixed random state for reproducibility.
+
+### Design Decisions
+- **Random Forest**: Chosen for its robustness and ability to handle high-dimensional data.
+- **Hyperparameters**: Set to 1000 estimators for better performance and reproducibility.
+
+```python
+# Train model
+print("Training RandomForest model...")
+model = RandomForestClassifier(n_estimators=1000, random_state=42)
+model.fit(X_train, y_train)
+print("Model training completed.")
+```
+
+---
+
+## Saving the Trained Model
+
+### Explanation
+I saved the trained model to a file using joblib for future use in predictions.
+
+### Design Decisions
+- **Model Serialization**: Used joblib for efficient model saving and loading.
+
+```python
+# Save model
+print("Saving the model...")
+joblib.dump(model, "models/random_forest_model.pkl")
+print("Model saved successfully.")
+```
+
+
+
+---
+# 🛰️ (6/8) Prediction Script (c_model_prediction.py)
+---
+
+## Importing Libraries
+
+### Explanation
+I began by importing the necessary libraries:
+
+- **pandas**: For data manipulation tasks.
+- **joblib**: For loading the trained model.
+- **FastAPI**: To create the API.
+- **BaseModel** from **pydantic**: For data validation.
+- **List** from **typing**: To handle lists of input data.
+
+### Design Decisions
+- **pandas**: Essential for handling input data.
+- **joblib**: Used for loading the pre-trained model.
+- **FastAPI**: Chosen for its fast performance and ease of use in creating APIs.
+- **pydantic**: Ensures data validation and structured input handling.
+- **typing.List**: Necessary for handling list inputs in API requests.
+
+```python
+import pandas as pd
+import joblib
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List
+```
+
+---
+
+## Loading the Model
+
+### Explanation
+I loaded the trained Random Forest model from the file using joblib.
+
+### Design Decisions
+- **Model Loading**: Used joblib to deserialize the trained model for making predictions.
+
+```python
+# Load the model
+model = joblib.load("models/random_forest_model.pkl")
+```
+
+---
+
+## Defining the Preprocessing Function
+
+### Explanation
+I imported the preprocessing function from the preprocessing script to ensure the input data is preprocessed in the same way as the training data.
+
+### Design Decisions
+- **Function Reuse**: Maintains consistency in data preprocessing by reusing the same function.
+
+```python
+# Define the function to preprocess data
+from a_preprocessing_featurepipeline import preprocess_data
+```
+
+---
+
+## Defining the Input and Output Data Models
+
+### Explanation
+I defined the structure of the input and output data using pydantic's BaseModel. This ensures the data passed to the API is validated and structured correctly.
+
+### Design Decisions
+- **Data Validation**: Ensures that the input data adheres to the expected format and types.
+- **Structured Output**: Provides a clear and structured format for the API responses.
+
+```python
+# Define the input data structure
+class InputData(BaseModel):
+    ID: int
+    RevolvingUtilizationOfUnsecuredLines: float
+    age: int
+    NumberOfTime30_59DaysPastDueNotWorse: int
+    DebtRatio: float
+    MonthlyIncome: float
+    NumberOfOpenCreditLinesAndLoans: int
+    NumberOfTimes90DaysLate: int
+    NumberRealEstateLoansOrLines: int
+    NumberOfTime60_89DaysPastDueNotWorse: int
+    NumberOfDependents: int
+
+class PredictResponse(BaseModel):
+    Id: int
+    Probability: float
+```
+
+---
+
+## Initializing the FastAPI Application
+
+### Explanation
+I initialized the FastAPI application to create the API.
+
+### Design Decisions
+- **FastAPI Initialization**: Sets up the FastAPI application for handling API requests.
+
+```python
+app = FastAPI()
+```
+
+---
+
+## Defining the Prediction Endpoint
+
+### Explanation
+I created an endpoint to handle POST requests for predictions. This endpoint converts the input data to a DataFrame, preprocesses it, checks for missing columns, reorders the columns, makes predictions, and returns the results.
+
+### Design Decisions
+- **POST Endpoint**: Handles prediction requests by accepting a list of input data.
+- **DataFrame Conversion**: Facilitates data manipulation and preprocessing.
+- **Preprocessing**: Ensures the input data is prepared in the same way as the training data.
+- **Column Reordering**: Matches the order of features used during model training.
+- **Prediction**: Uses the trained model to make predictions and returns the results in a structured format.
+
+```python
+@app.post("/predict", response_model=List[PredictResponse])
+async def predict(data: List[InputData]):
+    try:
+        # Convert input data to DataFrame
+        input_df = pd.DataFrame([item.dict() for item in data])
+
+        # Preprocess the input data
+        processed_data = preprocess_data(input_df)
+
+        # Check for missing columns and add them if necessary
+        expected_columns = model.feature_names_in_
+        missing_cols = set(expected_columns) - set(processed_data.columns)
+        for col in missing_cols:
+            processed_data[col] = 0
+
+        # Reorder columns to match the training order
+        processed_data = processed_data[expected_columns]
+
+        # Make predictions
+        predictions = model.predict_proba(processed_data)[:, 1]
+
+        # Prepare response
+        response = [{"Id": item.ID, "Probability": prob} for item, prob in zip(data, predictions)]
+        return response
+    except Exception as e:
+        print(f"Error in prediction: {e}")
+        return []
+```
+
+---
+
+## Running the FastAPI Application
+
+### Explanation
+I included a block to run the FastAPI application using uvicorn when the script is executed directly.
+
+### Design Decisions
+- **Application Execution**: Ensures the FastAPI server runs when the script is executed, allowing for handling prediction requests.
+
+```python
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8888)
+```
+
+
+
+---
+# 🐳 (7/8) Dockerfile (Dockerfile)
+---
+
+## Base Image and Working Directory
+
+### Explanation
+I started by using the official Python 3.10-slim image as the base image for the Docker container. Then, I set the working directory in the container to `/app`.
+
+### Design Decisions
+- **Python 3.10-slim**: Chosen for its lightweight nature, reducing the overall size of the Docker image.
+- **Working Directory**: Setting a specific working directory helps in organizing the files within the container.
+
+```dockerfile
+# Use the official Python image.
+FROM python:3.10-slim
+
+# Set the working directory in the container.
+WORKDIR /app
+```
+
+---
+
+## Copying and Installing Dependencies
+
+### Explanation
+I copied the `requirements.txt` file into the container and installed the dependencies using `pip`. This ensures that all necessary libraries are available in the container.
+
+### Design Decisions
+- **Copy requirements.txt**: Copies the requirements file to the container to ensure all dependencies are listed and can be installed.
+- **Install Dependencies**: Uses `pip` to install the dependencies listed in `requirements.txt`.
+
+```dockerfile
+# Copy the requirements file into the container.
+COPY requirements.txt .
+
+# Install the dependencies.
+RUN pip install --no-cache-dir -r requirements.txt
+```
+
+---
+
+## Copying Application Files
+
+### Explanation
+I copied the rest of the application files into the container. This includes all scripts and models needed for the application to run.
+
+### Design Decisions
+- **Copy Application Files**: Ensures that all necessary files are included in the Docker image, allowing the application to run correctly.
+
+```dockerfile
+# Copy the rest of the working directory contents into the container.
+COPY . .
+```
+
+---
+
+## Exposing Port and Running the Application
+
+### Explanation
+I exposed port 8888, which is the port the FastAPI server runs on, and set the default command to start the FastAPI server using `uvicorn`.
+
+### Design Decisions
+- **Expose Port**: Makes the application accessible on port 8888.
+- **Start FastAPI Server**: Uses `uvicorn` to run the FastAPI application, specifying the host and port.
+
+```dockerfile
+# Expose the port the app runs on.
+EXPOSE 8888
+
+# Run the command to start the FastAPI server.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8888"]
+```
+
+
+
+---
+# 🧮 (8/8) Requirements File (requirements.txt)
+---
+
+## Required Libraries
+
+### Explanation
+The `requirements.txt` file lists all the necessary Python libraries required for this project. Each library serves a specific purpose, ensuring that the project runs smoothly and efficiently.
+
+### Design Decisions
+- **fastapi**: Chosen as the web framework for building the API due to its speed and ease of use.
+- **uvicorn**: A lightning-fast ASGI server, essential for running the FastAPI application.
+- **pandas**: Used for data manipulation and preprocessing, making it easier to handle and process data.
+- **scikit-learn**: Provides machine learning tools, including the RandomForestClassifier used in this project.
+- **joblib**: Used for saving and loading the trained machine learning model.
+- **numpy**: Supports numerical operations, which are crucial for data processing and manipulation.
+- **pydantic**: Ensures data validation and settings management using Python type annotations, making it essential for FastAPI request and response models.
+
+
+---
+
+
 
