@@ -8,6 +8,7 @@ This repository contains a FastAPI application for predicting credit default pro
 ├── a_preprocessing_featurepipeline.py
 ├── b_model_gen.py
 ├── c_model_prediction.py
+├── main.py
 ├── Dockerfile
 ├── requirements.txt
 ├── models
@@ -926,7 +927,63 @@ The `requirements.txt` file lists all the necessary Python libraries required fo
 - **pydantic**: Ensures data validation and settings management using Python type annotations, making it essential for FastAPI request and response models.
 
 
+
 ---
+# 🏗 Design Consideration Questions
+---
+
+## **Questions**:
+	1. How would you test for incorrect user input?
+	2. If you had more time what would you do? 
+	3. How would you scale your API?
+	4. How would you improve the architecture and your submitted design?
+	5. How would you build monitoring around this? 
+	6. Comment on this modelling approach taken by the data scientists. 
+	7. What would you improve?
+
+---
+## Short Answers
+
+### 1. How would you test for incorrect user input?
+Testing for incorrect user input involves several steps:
+- **Validation at the API Level**: Use Pydantic models to enforce data types and constraints. For example, ensure that `age` is an integer and `MonthlyIncome` is a float.
+- **Unit Testing**: Create test cases for various scenarios, including valid and invalid inputs.
+
+### 2. If you had more time what would you do?
+- **Enhance the Model**: Experiment with other machine learning algorithms, hyperparameter tuning, and feature engineering to improve the model's accuracy.
+- **Detailed Documentation**: Provide more comprehensive documentation on the API, model, and data preprocessing steps.
+- **CI/CD Pipeline**: Implement continuous integration and deployment pipelines to automate testing and deployment.
+- **User Authentication**: Add user authentication to secure the API.
+- **Logging and Monitoring**: Implement detailed logging and monitoring for the API to track performance and issues.
+
+### 3. How would you scale your API?
+- **Load Balancing**: Use load balancers to distribute incoming requests across multiple instances of the API server.
+- **Horizontal Scaling**: Deploy multiple instances of the API server across different machines or containers.
+- **Caching**: Implement caching mechanisms for frequently accessed data to reduce the load on the API server.
+- **Auto-scaling**: Use auto-scaling services to automatically adjust the number of API server instances based on demand.
+
+### 4. How would you improve the architecture and your submitted design?
+- **Microservices Architecture**: Break down the monolithic application into smaller microservices for better scalability and maintainability.
+- **Service Mesh**: Use a service mesh for managing microservices communication, security, and monitoring.
+- **Database Optimization**: Optimize database queries and indexing for faster data access.
+- **Asynchronous Processing**: Use asynchronous processing for long-running tasks to improve the API's responsiveness.
+
+### 5. How would you build monitoring around this?
+- **APM Tools**: Use Application Performance Monitoring (APM) tools like New Relic, Datadog, or Prometheus to monitor API performance and detect issues.
+- **Logging**: Implement structured logging using tools like ELK stack (Elasticsearch, Logstash, Kibana) for centralized log management and analysis.
+- **Health Checks**: Implement health check endpoints and use monitoring tools to regularly check the API's health status.
+- **Alerts**: Set up alerts for critical metrics such as high response times, error rates, and resource usage to proactively address issues.
+
+### 6. Comment on this modeling approach taken by the data scientists.
+- **Random Forest Model**: The use of a Random Forest classifier is appropriate due to its robustness and ability to handle various data types. It also provides feature importance, which helps in understanding the model.
+- **Quantile Binning**: The quantile-based binning approach simplifies the handling of skewed data distributions and can improve model performance.
+
+### 7. What would you improve?
+- **Feature Engineering**: Explore additional feature engineering techniques to capture more information from the data.
+- **Model Evaluation**: Perform more extensive model evaluation using cross-validation and other metrics like ROC-AUC.
+- **Handling Imbalanced Data**: Implement techniques for handling imbalanced data, such as SMOTE or adjusting class weights.
+- **Explainability**: Use tools like SHAP or LIME to explain the model's predictions and make the model more interpretable.
+
 
 
 
