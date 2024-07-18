@@ -906,6 +906,107 @@ EXPOSE 8888
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8888"]
 ```
 
+---
+
+### Purpose of `main.py` in the Docker Container
+
+#### Overview:
+The `main.py` file serves as the entry point for the FastAPI application, handling incoming requests, preprocessing data, making predictions using the trained model, and returning the results. It plays a critical role in the workflow of the machine learning API deployed in the Docker container.
+
+#### Detailed Explanation:
+
+1. **Initialization and Setup:**
+   - The file starts by importing necessary libraries and modules, including FastAPI, joblib, pandas, numpy, and the custom preprocessing function from `a_preprocessing_featurepipeline.py`.
+   - It initializes a FastAPI app instance to handle incoming HTTP requests.
+
+    ```python
+    from fastapi import FastAPI
+    from pydantic import BaseModel
+    import joblib
+    import pandas as pd
+    import numpy as np
+    from a_preprocessing_featurepipeline import preprocess_data
+
+    # Initialize FastAPI app
+    app = FastAPI()
+    ```
+
+2. **Loading the Trained Model:**
+   - The pre-trained RandomForest model is loaded using joblib, which is essential for making predictions.
+
+    ```python
+    # Load the trained model
+    model = joblib.load("models/random_forest_model.pkl")
+    ```
+
+3. **Defining Data Models:**
+   - `PredictRequest` and `PredictResponse` classes are defined using Pydantic to enforce data validation for incoming requests and outgoing responses.
+   - This ensures that the input data conforms to the expected format and types, reducing errors during prediction.
+
+    ```python
+    # Define request and response models
+    class PredictRequest(BaseModel):
+        ID: int
+        RevolvingUtilizationOfUnsecuredLines: float
+        age: int
+        NumberOfTime30_59DaysPastDueNotWorse: int
+        DebtRatio: float
+        MonthlyIncome: float
+        NumberOfOpenCreditLinesAndLoans: int
+        NumberOfTimes90DaysLate: int
+        NumberRealEstateLoansOrLines: int
+        NumberOfTime60_89DaysPastDueNotWorse: int
+        NumberOfDependents: int
+
+    class PredictResponse(BaseModel):
+        ID: int
+        Probability: float
+    ```
+
+4. **Prediction Endpoint:**
+   - The `/predict` endpoint is defined, which accepts POST requests containing the input data for prediction.
+   - The input data is converted to a pandas DataFrame, preprocessed, and used to make predictions using the loaded model.
+   - The response is then structured as a `PredictResponse` object and returned to the client.
+
+    ```python
+    # Define prediction endpoint
+    @app.post("/predict", response_model=PredictResponse)
+    def predict(request: PredictRequest):
+        try:
+            # Convert request to DataFrame
+            input_data = pd.DataFrame([request.dict()])
+            print("Input data received:", input_data)
+
+            # Preprocess input data
+            preprocessed_data = preprocess_data(input_data)
+            print("Preprocessed data:", preprocessed_data)
+
+            # Ensure correct columns order
+            feature_names = model.feature_names_in_
+            preprocessed_data = preprocessed_data.reindex(columns=feature_names, fill_value=0)
+
+            # Make prediction
+            prediction = model.predict_proba(preprocessed_data)[:, 1][0]
+            print("Prediction:", prediction)
+
+            # Create response
+            response = PredictResponse(ID=request.ID, Probability=prediction)
+            return response
+        except Exception as e:
+            print(f"Error during prediction: {e}")
+            return {"error": str(e)}
+    ```
+
+5. **Running the FastAPI Server:**
+   - The `if __name__ == "__main__":` block ensures that the FastAPI server runs when the script is executed directly.
+   - Uvicorn is used to serve the FastAPI application, making it accessible at the specified host and port.
+
+    ```python
+    # To run the server, use the command: uvicorn main:app --host 0.0.0.0 --port 8888
+    if __name__ == "__main__":
+        import uvicorn
+        uvicorn.run(app, host="0.0.0.0", port=8888)
+    ```
 
 
 ---
